@@ -4355,8 +4355,9 @@ private:
                                              SILParameterInfo param) {
     bool requiresReabstraction = loweredArgType.getASTType()
       != param.getInterfaceType();
-    // If the parameter is consumed, we have to emit at +1.
-    if (param.isConsumed()) {
+    // If the parameter is consumed or @in_cxx, we have to emit at +1.
+    if (param.isConsumed() ||
+        param.getConvention() == ParameterConvention::Indirect_In_CXX) {
       return {SGFContext(), requiresReabstraction};
     }
 
@@ -5596,6 +5597,7 @@ RValue SILGenFunction::emitApply(
     case ParameterConvention::Indirect_In:
     case ParameterConvention::Indirect_Inout:
     case ParameterConvention::Indirect_InoutAliasable:
+    case ParameterConvention::Indirect_In_CXX:
     case ParameterConvention::Pack_Guaranteed:
     case ParameterConvention::Pack_Owned:
     case ParameterConvention::Pack_Inout:
@@ -6846,6 +6848,7 @@ bool AccessorBaseArgPreparer::shouldLoadBaseAddress() const {
   // memory to 'in', and we have pass at +1.
   case ParameterConvention::Indirect_In:
   case ParameterConvention::Indirect_In_Guaranteed:
+  case ParameterConvention::Indirect_In_CXX:
     // TODO: We shouldn't be able to get an lvalue here, but the AST
     // sometimes produces an inout base for non-mutating accessors.
     // rdar://problem/19782170

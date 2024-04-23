@@ -347,6 +347,11 @@ public enum ArgumentConvention : CustomStringConvertible {
   /// convention used by mutable captures in @noescape closures.
   case indirectInoutAliasable
 
+  /// This argument is passed indirectly, i.e. by directly passing the address
+  /// of an object in memory. The callee may modify, but does not destroy the
+  /// object.
+  case indirectInCXX
+
   /// This argument represents an indirect return value address. The callee stores
   /// the returned value to this argument. At the time when the function is called,
   /// the memory location referenced by the argument is uninitialized.
@@ -402,8 +407,9 @@ public enum ArgumentConvention : CustomStringConvertible {
   public var isIndirect: Bool {
     switch self {
     case .indirectIn, .indirectInGuaranteed,
-         .indirectInout, .indirectInoutAliasable, .indirectOut,
-         .packOut, .packInout, .packOwned, .packGuaranteed:
+         .indirectInout, .indirectInoutAliasable, .indirectInCXX,
+         .indirectOut, .packOut, .packInout, .packOwned,
+         .packGuaranteed:
       return true
     case .directOwned, .directUnowned, .directGuaranteed:
       return false
@@ -416,7 +422,8 @@ public enum ArgumentConvention : CustomStringConvertible {
          .packOwned, .packGuaranteed:
       return true
     case .directOwned, .directUnowned, .directGuaranteed,
-         .indirectInout, .indirectInoutAliasable, .indirectOut,
+         .indirectInout, .indirectInoutAliasable, .indirectInCXX,
+         .indirectOut,
          .packOut, .packInout:
       return false
     }
@@ -428,7 +435,7 @@ public enum ArgumentConvention : CustomStringConvertible {
       return true
     case .indirectInGuaranteed, .directGuaranteed, .packGuaranteed,
          .indirectIn, .directOwned, .directUnowned,
-         .indirectInout, .indirectInoutAliasable,
+         .indirectInout, .indirectInoutAliasable, .indirectInCXX,
          .packInout, .packOwned:
       return false
     }
@@ -439,8 +446,8 @@ public enum ArgumentConvention : CustomStringConvertible {
     case .indirectInGuaranteed, .directGuaranteed, .packGuaranteed:
       return true
     case .indirectIn, .directOwned, .directUnowned,
-         .indirectInout, .indirectInoutAliasable, .indirectOut,
-         .packOut, .packInout, .packOwned:
+         .indirectInout, .indirectInoutAliasable, .indirectInCXX,
+         .indirectOut, .packOut, .packInout, .packOwned:
       return false
     }
   }
@@ -451,6 +458,7 @@ public enum ArgumentConvention : CustomStringConvertible {
          .indirectOut,
          .indirectInGuaranteed,
          .indirectInout,
+         .indirectInCXX,
          .packOut,
          .packInout,
          .packOwned,
@@ -475,6 +483,7 @@ public enum ArgumentConvention : CustomStringConvertible {
     case .indirectIn,
          .indirectOut,
          .indirectInGuaranteed,
+         .indirectInCXX,
          .directUnowned,
          .directGuaranteed,
          .directOwned,
@@ -495,6 +504,8 @@ public enum ArgumentConvention : CustomStringConvertible {
       return "indirectInout"
     case .indirectInoutAliasable:
       return "indirectInoutAliasable"
+    case .indirectInCXX:
+      return "indirectInCXX"
     case .indirectOut:
       return "indirectOut"
     case .directOwned:
@@ -529,6 +540,7 @@ extension BridgedArgumentConvention {
       case .Indirect_In_Guaranteed:  return .indirectInGuaranteed
       case .Indirect_Inout:          return .indirectInout
       case .Indirect_InoutAliasable: return .indirectInoutAliasable
+      case .Indirect_In_CXX:         return .indirectInCXX
       case .Indirect_Out:            return .indirectOut
       case .Direct_Owned:            return .directOwned
       case .Direct_Unowned:          return .directUnowned
@@ -550,6 +562,7 @@ extension ArgumentConvention {
       case .indirectInGuaranteed:   return .Indirect_In_Guaranteed
       case .indirectInout:          return .Indirect_Inout
       case .indirectInoutAliasable: return .Indirect_InoutAliasable
+      case .indirectInCXX:          return .Indirect_In_CXX
       case .indirectOut:            return .Indirect_Out
       case .directOwned:            return .Direct_Owned
       case .directUnowned:          return .Direct_Unowned
